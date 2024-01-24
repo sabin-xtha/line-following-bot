@@ -17,9 +17,11 @@ int64_t Encoder::get_count_aggregate(void)
 
 float Encoder::get_omega(void)
 {
-  int16_t count = get_count();
+  int16_t count = get_count() - prevCount;
   int32_t sample_time = HAL_GetTick() - last_reset_time;
   omega = (2.0 * 3.14) * count / (ppr * ((float)sample_time / 1000.0));
+  last_reset_time = HAL_GetTick();
+  prevCount = get_count();
   return omega;
 }
 

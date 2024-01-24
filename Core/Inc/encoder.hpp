@@ -5,7 +5,8 @@
 #include "tim.h"
 #include <stdint.h>
 
-class Encoder {
+class Encoder
+{
 public:
   TIM_HandleTypeDef *henc;
   uint16_t ppr = 1;
@@ -13,6 +14,7 @@ public:
   int64_t count_aggregate = 0;
 
   uint32_t last_reset_time = 0;
+  int16_t prevCount = 0;
 
   Encoder(TIM_HandleTypeDef *_henc, uint16_t _ppr) : henc(_henc), ppr(_ppr) {}
   Encoder() {}

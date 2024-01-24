@@ -1,4 +1,4 @@
-build/robot.o: Core/Src/robot.cpp Core/Inc/robot.h \
+build/robot.o: Core/Src/robot.cpp Core/Inc/robot.hpp \
  Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h \
  Drivers/CMSIS/Include/core_cm4.h Drivers/CMSIS/Include/cmsis_version.h \
@@ -28,7 +28,7 @@ build/robot.o: Core/Src/robot.cpp Core/Inc/robot.h \
  Core/Inc/encoder.hpp Core/Inc/tim.h Core/Inc/main.h Core/Inc/pid.hpp \
  Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h Core/Inc/gpio.h \
  Core/Inc/tim.h Core/Inc/usart.h
-Core/Inc/robot.h:
+Core/Inc/robot.hpp:
 Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
 Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h:
 Drivers/CMSIS/Include/core_cm4.h:
