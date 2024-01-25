@@ -140,7 +140,6 @@ public:
   Node *current_node;
 
   float linear_input = 0;
-  ;
   Maze maze;
 
   Robot() {}
