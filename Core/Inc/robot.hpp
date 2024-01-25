@@ -11,19 +11,20 @@
 #include "vector"
 #include <cstdlib>
 #include <stdio.h>
+#include "maze.hpp"
 
 #define pi 3.1415
 #define max_nodes 100
 uint32_t prev_count1, prev_count2, prevtime;
 int state;
 
-enum UpNext
-{
-  NORTH = 90,
-  EAST = 0,
-  SOUTH = 270,
-  WEST = 180
-};
+// enum UpNext
+// {
+//   NORTH = 90,
+//   EAST = 0,
+//   SOUTH = 270,
+//   WEST = 180
+// };
 
 class Node
 {
@@ -36,7 +37,7 @@ public:
   Node *south;
   Node *east;
   Node *west;
-  UpNext dir = NORTH;
+  // UpNext dir = NORTH;
 
   int state;    // 1->left, 2->right, 3->T, dead-end->255, +->
   int type = 0; // 0->0, 1->L,R, 2->T, 3->+
@@ -76,41 +77,27 @@ Node *getNode()
 }
 void getchild(int angle, Node *t)
 {
-  if ((t->dir + angle) % 360 == NORTH)
-  {
-    t->north = getNode();
-    t->north->south = t;
-  }
-  if ((t->dir + angle) % 360 == EAST)
-  {
-    t->east = getNode();
-    t->east->west = t;
-  }
-  if ((t->dir + angle) % 360 == SOUTH)
-  {
-    t->south = getNode();
-    t->south->north = t;
-  }
-  if ((t->dir + angle) % 360 == WEST)
-  {
-    t->west = getNode();
-    t->west->east = t;
-  }
+  // if ((t->dir + angle) % 360 == NORTH)
+  // {
+  //   t->north = getNode();
+  //   t->north->south = t;
+  // }
+  // if ((t->dir + angle) % 360 == EAST)
+  // {
+  //   t->east = getNode();
+  //   t->east->west = t;
+  // }
+  // if ((t->dir + angle) % 360 == SOUTH)
+  // {
+  //   t->south = getNode();
+  //   t->south->north = t;
+  // }
+  // if ((t->dir + angle) % 360 == WEST)
+  // {
+  //   t->west = getNode();
+  //   t->west->east = t;
+  // }
 }
-
-class Maze
-{
-public:
-  char point[max_nodes];
-  int explored[max_nodes];
-  int type[max_nodes]; // (0=dead_end) (1=left,right turn) (2=T) (3=+)
-  float coordinate[max_nodes][max_nodes];
-
-  int direction;
-  int total_nodes;
-
-  void check_new_point_or_not();
-};
 
 class Robot
 {

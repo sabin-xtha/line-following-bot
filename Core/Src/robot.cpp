@@ -168,7 +168,6 @@ void Robot::init()
     enc[1] = Encoder(&htim1, 1425);
     enc[0].init();
     enc[1].init();
-
     printf("init\n");
 }
 
@@ -206,7 +205,7 @@ void Robot::control()
         // current_node->type = 0;
         // current_node->theta += 180;
         // current_node = current_node;
-        maze.node_found();
+        maze.nodeFound(1, 10.0);
         stop();
         HAL_Delay(2000);
         // if ((HAL_GetTick() - time) < 2000)
