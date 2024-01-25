@@ -108,6 +108,11 @@ void Robot::init()
     enc[0].init();
     enc[1].init();
 
+    point_array[0] = 0;
+    total_points = 1;
+    coordinate_array[total_points][0] = 0;
+    coordinate_array[total_points][1] = 0;
+
     printf("init\n");
 }
 
@@ -205,12 +210,18 @@ void init_robot()
 }
 void Robot::control()
 {
+
     if (input == 0b00000000)
     {
         // dead end
-        current_node = getNode();
-        current_node->type = 0;
-        current_node->theta += 180;
+        //this is new node
+        total_points += 1;
+        //coordinate of the point
+        coordinate_array[total_points][0]= ;
+        type_array[total_points] = 
+        // current_node = getNode();
+        // current_node->type = 0;
+        // current_node->theta += 180;
         // current_node = current_node;
         uturn();
     }
@@ -234,10 +245,21 @@ void Robot::control()
     }
     else
     {
-        stering_pid.Setpoint = 24;
-        stering_pid.Input = input;
+        int nl_inp = input;
+        float linear_input = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            if (((nl_inp >> i) & 0b00000001))
+            {
+                linear_input += 3.5 - i;
+            }
+        }
+        // bot.forward();
+
+        stering_pid.Setpoint = 0.0;
+        stering_pid.Input = (double)(linear_input);
         stering_pid.Compute();
-        float output = stering_pid.Output / 255;
+        float output = stering_pid.Output / 40;
         forward(output);
     }
 }
@@ -273,23 +295,8 @@ void operate_robot()
             HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
             // printf("%X\n", bot.input);
             bot.speed = 0.6;
+            bot.control();
 
-            int nl_inp = bot.input;
-            float linear_input = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                if (((nl_inp >> i) & 0b00000001))
-                {
-                    linear_input += 3.5 - i;
-                }
-            }
-            // bot.forward();
-            // bot.control();
-            bot.stering_pid.Setpoint = 0.0;
-            bot.stering_pid.Input = (double)(linear_input);
-            bot.stering_pid.Compute();
-            float output = bot.stering_pid.Output / 40;
-            bot.forward(output);
             prev_time = HAL_GetTick();
             printf("%lf\t%lf\t%lf\n", bot.stering_pid.Input, bot.stering_pid.Output / 60, bot.stering_pid.Setpoint);
             // printf("%f\t%f", bot.enc[0].get_omega(), bot.enc[1].get_omega());

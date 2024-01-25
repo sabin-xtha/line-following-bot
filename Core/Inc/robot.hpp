@@ -11,6 +11,7 @@
 #include "vector"
 #include <cstdlib>
 #include <stdio.h>
+#include "maze.hpp"
 
 #define pi 3.1415
 uint32_t prevtime;
@@ -121,6 +122,8 @@ public:
   Node *nodes[100];
   Node *current_node;
   Node *temp_node;
+
+  Maze maze;
 
   Robot() {}
 
