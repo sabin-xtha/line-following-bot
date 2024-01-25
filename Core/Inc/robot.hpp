@@ -13,6 +13,7 @@
 #include <stdio.h>
 
 #define pi 3.1415
+#define max_nodes 100
 uint32_t prevtime;
 int state;
 
@@ -65,7 +66,7 @@ public:
   // {
   // }
 };
-Node dynamic_node[100];
+Node dynamic_node[max_nodes];
 int ptr = 0;
 Node *getNode()
 {
@@ -97,15 +98,32 @@ void getchild(int angle, Node *t)
   }
 }
 
+class Maze
+{
+public:
+  char point[max_nodes];
+  int explored[max_nodes];
+  int type[max_nodes]; // (0=dead_end) (1=left,right turn) (2=T) (3=+)
+  float coordinate[max_nodes][max_nodes];
+
+  int direction;
+  int total_nodes;
+
+  void check_new_point_or_not();
+};
+
 class Robot
 {
 public:
+  int i = 0;
   Motor motor[2];
   Encoder enc[2];
   uint8_t lfactor;
   bool mode = 0;
   bool is_end = false;
   float speed;
+
+  PID motor_pid[2];
 
   uint8_t input;
   void init();
@@ -118,9 +136,10 @@ public:
   void stop();
   void check_further();
 
-  Node *nodes[100];
+  Node *maze_nodes[100];
   Node *current_node;
-  Node *temp_node;
+
+  Maze maze;
 
   Robot() {}
 
