@@ -14,7 +14,7 @@
 
 #define pi 3.1415
 #define max_nodes 100
-uint32_t prevtime;
+uint32_t prev_count1, prev_count2, prevtime;
 int state;
 
 enum UpNext
@@ -121,7 +121,7 @@ public:
   uint8_t lfactor;
   bool mode = 0;
   bool is_end = false;
-  float speed;
+  double speed;
 
   PID motor_pid[2];
 
@@ -131,7 +131,7 @@ public:
   void left();
   void right();
   void uturn();
-  void forward(float);
+  void forward();
   void backward(float);
   void stop();
   void check_further();
@@ -139,6 +139,8 @@ public:
   Node *maze_nodes[100];
   Node *current_node;
 
+  float linear_input = 0;
+  ;
   Maze maze;
 
   Robot() {}
