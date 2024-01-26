@@ -310,7 +310,10 @@ void Robot::control()
     {
         printf("end\n");
         stop();
+        // optimize untill button is pressed
         optimize();
+
+        runpath();
     }
     else if ((input & 0b11110000) == 0b11110000)
     {
@@ -357,6 +360,7 @@ void Robot::control()
             stop();
             HAL_Delay(100);
             forward();
+            turn_array[turn_count] = FORWARD;
         }
     }
     else
@@ -423,6 +427,9 @@ void Robot::optimize()
         }
         turn_count = temp_turn_count;
     }
+}
+void Robot::runpath(){
+
 }
 void operate_robot()
 {

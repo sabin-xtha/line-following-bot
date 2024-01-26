@@ -138,6 +138,7 @@ public:
   void stop();
   void check_further();
   void optimize();
+  void runpath();
 
   Node *maze_nodes[100];
   Node *current_node;
