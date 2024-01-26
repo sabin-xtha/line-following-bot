@@ -15,9 +15,12 @@
 
 #define pi 3.1415
 #define max_nodes 100
+#define OPTIMIZATION_LEVEL 5
+
+
 uint32_t prev_count1, prev_count2, prevtime;
 int state;
-
+uint32_t node_time = 0;
 // enum UpNext
 // {
 //   NORTH = 90,
@@ -26,6 +29,12 @@ int state;
 //   WEST = 180
 // };
 
+enum Direction{
+  FORWARD,
+  RIGHT,
+  LEFT,
+  UTURN
+};
 class Node
 {
 public:
@@ -102,6 +111,10 @@ void getchild(int angle, Node *t)
 class Robot
 {
 public:
+
+
+  int turn_array[100];
+  int turn_count;
   int i = 0;
   Motor motor[2];
   Encoder enc[2];
@@ -119,9 +132,12 @@ public:
   void right();
   void uturn();
   void forward();
+  void RT_forward();
+
   void backward(float);
   void stop();
   void check_further();
+  void optimize();
 
   Node *maze_nodes[100];
   Node *current_node;
