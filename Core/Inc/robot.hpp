@@ -29,7 +29,7 @@ uint32_t node_time = 0;
 //   WEST = 180
 // };
 
-enum Direction{
+enum Maze_direction{
   FORWARD,
   RIGHT,
   LEFT,
@@ -47,7 +47,6 @@ public:
   Node *east;
   Node *west;
   // UpNext dir = NORTH;
-
   int state;    // 1->left, 2->right, 3->T, dead-end->255, +->
   int type = 0; // 0->0, 1->L,R, 2->T, 3->+
   bool visited = false;
@@ -134,7 +133,7 @@ public:
   void forward();
   void RT_forward();
 
-  void backward(float);
+  void backward();
   void stop();
   void check_further();
   void optimize();
@@ -144,6 +143,7 @@ public:
   Node *current_node;
 
   float linear_input = 0;
+  int button_count = 0;
   Maze maze;
 
   Robot() {}
