@@ -226,7 +226,7 @@ void Robot::control()
         return;
     }
     dead_band = 0;
-    if ((HAL_GetTick() - node_time) < 100)
+    if ((HAL_GetTick() - node_time) < 250)
     {
         forward();
         return;
@@ -448,7 +448,7 @@ void Robot::runpath()
                 forward();
                 continue;
             }
-            if ((HAL_GetTick() - node_time) < 100)
+            if ((HAL_GetTick() - node_time) < 250)
             {
                 forward();
                 printf("cont ");
