@@ -133,7 +133,7 @@ public:
   void forward();
   void RT_forward();
 
-  void backward();
+  void backward(int);
   void stop();
   void check_further();
   void optimize();

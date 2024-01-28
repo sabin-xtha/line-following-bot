@@ -24,14 +24,21 @@ unsigned int turn[100];
 int turncount = 0;
 void Robot::forward()
 {
+    printf("'forward\n");
     int nl_inp = input;
     linear_input = 0.0;
+    int high_bit = 0;
     for (int i = 0; i < 8; i++)
     {
         if (((nl_inp >> i) & 0b00000001))
         {
             linear_input -= 3.5 - (i);
+            high_bit++;
         }
+    }
+    if (high_bit)
+    {
+        linear_input /= high_bit;
     }
 
     stering_pid.Setpoint = 0.0;
@@ -48,32 +55,33 @@ void Robot::forward()
     motor_pid[1].Compute();
     motor[0].set_speed((motor_pid[0].Output) / 50); // right 0
     motor[1].set_speed((motor_pid[1].Output) / 50); // left 1
+    printf("input:%lf\tsetpoint:%lf\toutput:%lf", motor_pid[0].Input, motor_pid[0].Setpoint, motor_pid[0].Output);
 
     // printf("pid_outputs:::%lf\t%lf\t%f\n", (motor_pid[0].Output - output) / 50, (motor_pid[1].Output + output) / 50, output);
     // printf("motor speeds:::%f\t%f\n", motor_pid[0].Input, motor_pid[1].Input);
 }
-void Robot::backward()
+void Robot::backward(int delay)
 {
     printf("backward\n");
-    motor[0].set_speed(0.4);  // right 0
-    motor[1].set_speed(-0.4); // left 1
-    HAL_Delay(200);
+    motor[0].set_speed(-0.45); // right 0
+    motor[1].set_speed(-0.45); // left 1
+    HAL_Delay(delay);
 }
 void Robot::left()
 {
     printf("left\n");
     prev_count1 = enc[0].get_count();
     uint32_t prev_time = HAL_GetTick();
-    while (abs(enc[0].get_count() - prev_count1) < 1300)
+    while (abs(enc[0].get_count() - prev_count1) < 1350)
     {
         if ((HAL_GetTick() - prev_time) > SAMPLE_TIME)
         {
             // printf("left, %d\n", enc[0].get_count());
 
-            motor_pid[0].Setpoint = 10;
+            motor_pid[0].Setpoint = 15;
             motor_pid[1].Setpoint = 0.0;
             motor_pid[0].Input = -enc[0].get_omega();
-            motor_pid[1].Input = enc[1].get_omega();
+            motor_pid[1].Input = -enc[1].get_omega();
             motor_pid[0].Compute();
             motor_pid[1].Compute();
             motor[0].set_speed(motor_pid[0].Output / 50);
@@ -87,16 +95,16 @@ void Robot::right()
     printf("right\n");
     prev_count2 = enc[1].get_count();
     uint32_t prev_time = HAL_GetTick();
-    while (abs(enc[1].get_count() - prev_count2) < 1400)
+    while (abs(enc[1].get_count() - prev_count2) < 1225)
     {
         if ((HAL_GetTick() - prev_time) > SAMPLE_TIME)
         {
             // printf("left, %d\", enc[1].get_count());
 
             motor_pid[0].Setpoint = 0.0;
-            motor_pid[1].Setpoint = 10;
+            motor_pid[1].Setpoint = 15;
             motor_pid[0].Input = -enc[0].get_omega();
-            motor_pid[1].Input = enc[1].get_omega();
+            motor_pid[1].Input = -enc[1].get_omega();
             motor_pid[0].Compute();
             motor_pid[1].Compute();
             motor[0].set_speed(motor_pid[0].Output / 50);
@@ -107,7 +115,7 @@ void Robot::right()
 }
 void Robot::stop()
 {
-    // printf("stop\n");
+    printf("stop\n");
     motor_pid[0].outputSum = 0;
     motor_pid[1].outputSum = 0;
 
@@ -119,7 +127,7 @@ void Robot::stop()
 }
 void Robot::uturn()
 {
-
+    printf("uturn\n");
     prev_count1 = enc[0].get_count();
     prev_count2 = enc[1].get_count();
 
@@ -135,7 +143,7 @@ void Robot::uturn()
             motor_pid[0].Setpoint = -10;
             motor_pid[1].Setpoint = 10;
             motor_pid[0].Input = -enc[0].get_omega();
-            motor_pid[1].Input = enc[1].get_omega();
+            motor_pid[1].Input = -enc[1].get_omega();
             motor_pid[0].Compute();
             motor_pid[1].Compute();
             motor[0].set_speed(motor_pid[0].Output / 50);
@@ -153,11 +161,11 @@ void Robot::init()
     motor_pid[0] = PID(1, 0, 0, P_ON_E, REVERSE);
     motor_pid[0].Init();
     motor_pid[0].SetOutputLimits(-40, 40);
-    motor_pid[0].SetTunings(2, 15, 0.03);
+    motor_pid[0].SetTunings(1.8, 15, 0.03);
     motor_pid[0].SetSampleTime(SAMPLE_TIME);
     motor_pid[0].SetMode(AUTOMATIC);
 
-    motor_pid[1] = PID(1, 0, 0, P_ON_E, DIRECT);
+    motor_pid[1] = PID(1, 0, 0, P_ON_E, REVERSE);
     motor_pid[1].Init();
     motor_pid[1].SetOutputLimits(-40, 40);
     motor_pid[1].SetTunings(1.5, 13, 0.03);
@@ -166,8 +174,8 @@ void Robot::init()
 
     stering_pid = PID(1, 0, 0, P_ON_E, DIRECT);
     stering_pid.Init();
-    stering_pid.SetOutputLimits(-(speed / 4.0), (speed / 4.0));
-    stering_pid.SetTunings(0.8, .05, .8); //(4.5, .5, 1);
+    stering_pid.SetOutputLimits(-(speed / 3.0), (speed / 3.0));
+    stering_pid.SetTunings(0.8, 0, 0.4); //(4.5, .5, 1);
     stering_pid.SetSampleTime(SAMPLE_TIME);
     stering_pid.SetMode(AUTOMATIC);
 
@@ -192,6 +200,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     {
         HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
         HAL_UART_Receive_DMA(&huart2, &bot.input, 1);
+
         uart_receive_time = HAL_GetTick();
     }
 }
@@ -209,8 +218,11 @@ void Robot::control()
     {
         dead_band++;
     }
+    else
+    {
+        dead_band = 0;
+    }
     prev_sensor = bot.input;
-
 
     if (input == 0b11111111)
     {
@@ -219,57 +231,36 @@ void Robot::control()
         cnt++;
         return;
     }
-    printf("%d\n", dead_band);
-    if (dead_band < 7)
+    // printf("%d\n", dead_band);
+    if (dead_band < 5)
     {
         forward();
         return;
     }
     dead_band = 0;
-    if ((HAL_GetTick() - node_time) < 250)
-    {
-        forward();
-        return;
-    }
-    node_time = HAL_GetTick();
 
-    GPIO_PinState forward_ir = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4);
+    GPIO_PinState leftorright = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9);
     int distance_moved = 10;
 
-    // if (input == 0b11111111)
-    // {
-    printf("cnt   %d\n", cnt);
-    // if (forward_ir == PATH && cnt < 20)
     if (sabai_high && cnt < 20)
     {
         stop();
         HAL_Delay(100);
-        backward();
+        backward(300);
         sabai_high = false;
         cnt = 0;
         printf("+\n");
         maze.nodeFound(3, distance_moved);
+        left();
         stop();
         HAL_Delay(100);
-        left();
+        // backward(200);
+
         turn_array[turn_count] = LEFT;
         turn_count++;
 
         maze.direction = (maze.direction + 3) % 4;
     }
-    // else if (forward_ir == NOT_PATH && cnt < 20)
-    // {
-    //     cnt = 0;
-    //     printf("T\n");
-    //     maze.nodeFound(2, distance_moved);
-    //     stop();
-    //     HAL_Delay(100);
-    //     left();
-    //     turn_array[turn_count] = LEFT;
-    //     turn_count++;
-
-    //     maze.direction = (maze.direction + 3) % 4;
-    // }
     else if (cnt > 20)
     {
         sabai_high = false;
@@ -285,18 +276,17 @@ void Robot::control()
         if (button_count < 50)
         {
             stop();
+            backward(300);
+            stop();
             // optimize until button is pressed
         }
+
         optimize();
 
         for (int i = 0; i < turn_count; i++)
         {
             printf("after optimize turn array [%d] :: [%d]\n", i, turn_array[i]);
         }
-
-        while (!(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET))
-            ;
-
         runpath();
     }
 
@@ -315,25 +305,42 @@ void Robot::control()
     }
     else if ((input & 0b11110000) == 0b11110000)
     {
-        if (forward_ir == NOT_PATH)
+        if ((HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == NOT_PATH) && (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == NOT_PATH))
         {
             printf("left\n");
             maze.nodeFound(1, distance_moved);
+
             stop();
             HAL_Delay(100);
+            backward(200);
             left();
+            stop();
+            HAL_Delay(100);
+
+            // backward(200);
+
             turn_array[turn_count] = LEFT;
             turn_count++;
-
             maze.direction = (maze.direction + 3) % 4;
         }
         else
         {
             printf("LT\n");
             maze.nodeFound(2, distance_moved);
-            stop();
-            HAL_Delay(100);
-            left();
+            if (leftorright == GPIO_PIN_SET)
+            {
+                // stop();
+                // HAL_Delay(100);
+                backward(200);
+                left();
+                stop();
+                HAL_Delay(100);
+                // backward(200);
+            }
+            else
+            {
+                forward();
+            }
             turn_array[turn_count] = LEFT;
             turn_count++;
 
@@ -342,13 +349,18 @@ void Robot::control()
     }
     else if ((input & 0b00001111) == 0b00001111)
     {
-        if (forward_ir == NOT_PATH)
+        if ((HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == NOT_PATH) && (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6) == NOT_PATH))
         {
             printf("right\n");
             maze.nodeFound(1, distance_moved);
             stop();
             HAL_Delay(100);
+            backward(200);
             right();
+            stop();
+            HAL_Delay(100);
+            // backward(200);
+
             turn_array[turn_count] = RIGHT;
             turn_count++;
 
@@ -358,7 +370,19 @@ void Robot::control()
         {
             printf("RT\n");
             maze.nodeFound(2, distance_moved);
-            forward();
+            if (leftorright == GPIO_PIN_SET)
+            {
+                forward();
+            }
+            else
+            {
+                stop();
+                HAL_Delay(100);
+                backward(200);
+                right();
+                stop();
+                HAL_Delay(100);
+            }
             turn_array[turn_count] = FORWARD;
             turn_count++;
         }
@@ -372,7 +396,10 @@ void Robot::control()
 }
 void Robot::optimize()
 {
-    for (int i = 0; i < OPTIMIZATION_LEVEL; i++)
+    // for (int i = 0; i < OPTIMIZATION_LEVEL; i++)
+    // {
+
+    while (!(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET))
     {
         int temp_turn[100];
         int temp_turn_count = 0;
@@ -438,6 +465,15 @@ void Robot::runpath()
     node_time = HAL_GetTick();
     while (!is_end)
     {
+        if (prev_sensor == bot.input)
+        {
+            dead_band++;
+        }
+        else
+        {
+            dead_band = 0;
+        }
+        prev_sensor = bot.input;
         if ((HAL_GetTick() - prev_time) > SAMPLE_TIME)
         {
             prev_time = HAL_GetTick();
@@ -448,13 +484,20 @@ void Robot::runpath()
                 forward();
                 continue;
             }
-            if ((HAL_GetTick() - node_time) < 250)
+            // if ((HAL_GetTick() - node_time) < 250)
+            // {
+            //     forward();
+            //     printf("cont ");
+            //     continue;
+            // }
+            // node_time = HAL_GetTick();
+
+            if (dead_band < 5)
             {
                 forward();
-                printf("cont ");
-                continue;
+                return;
             }
-            node_time = HAL_GetTick();
+            dead_band = 0;
 
             // for (int i = 0; i < 8; i++)
             // {
@@ -474,27 +517,40 @@ void Robot::runpath()
                      (input & 0b11110000) == 0b11110000 ||
                      (input & 0b00001111) == 0b00001111 || (cnt < 20 && sabai_high))
             {
+                HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
                 printf("hereee [%d] :: %d \n", i, turn_array[i]);
                 if (turn_array[index] == UTURN)
                 {
                     printf("uturn\n");
+                    stop();
+                    HAL_Delay(100);
                     uturn();
                 }
                 else if (turn_array[index] == RIGHT)
                 {
                     printf("right\n");
+                    stop();
+                    HAL_Delay(100);
+                    backward(200);
                     right();
+                    stop();
+                    HAL_Delay(100);
                 }
                 else if (turn_array[index] == LEFT)
                 {
                     printf("left\n");
+                    stop();
+                    HAL_Delay(100);
+                    backward(200);
                     left();
+                    stop();
+                    HAL_Delay(100);
                 }
-                // else if (turn_array[i] == FORWARD)
-                // {
-                //     printf("forward\n");
-                //     forward();
-                // }
+                else if (turn_array[i] == FORWARD)
+                {
+                    printf("forward\n");
+                    forward();
+                }
                 index++;
                 cnt = 0;
                 sabai_high = false;
@@ -549,10 +605,16 @@ void operate_robot()
 
             bot.speed = 10;
 
-            bot.control();
+            // bot.control();
 
-            // bot.backward();
+            // bot.turn_array[0] = 1;
+            // bot.turn_array[1] = 1;
+            // bot.turn_array[2] = 2;
+            // bot.runpath();
+            // bot.turn_array[0] = 1;
 
+            bot.forward();
+            // printf("count:%d\n",bot.enc[1].get_count());
             prev_time = HAL_GetTick();
             // printf("output ::: %f\n", bot.stering_pid.Input);
             // printf("steering%lf\t%lf\t%lf\t%lf\n", bot.stering_pid.Input, bot.stering_pid.Setpoint, bot.stering_pid.Output, bot.speed);
